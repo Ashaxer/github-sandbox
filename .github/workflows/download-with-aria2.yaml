@@ -46,7 +46,7 @@ jobs:
             #  --min-split-size=90M \
             #  --dir="downloads" \
             #  "$URL"
-            axel -a -p -n 16 -o downloads "$URL"
+            axel -a -n 16 -o downloads "$URL"
           done
 
           if [ "$MODE" = "zip" ]; then
