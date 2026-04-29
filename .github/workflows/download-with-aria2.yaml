@@ -65,14 +65,8 @@ jobs:
                # zip -0 -s 90m "downloads/${BASENAME}.zip" -j "$FILE"
                # echo "✅ Parts: $(ls downloads/${BASENAME}* | wc -l)"
              else
-               mv "$FILE" "downloads/$BASENAME"
+               cp "$FILE" "downloads/$BASENAME"
              fi
-          done
-          
-          for FILE in tmp_downloads/*; do
-           [ -f "$FILE" ] || continue
-           BASENAME=$(basename "$FILE")
-           cp "$FILE" "downloads/$BASENAME"
           done
           
           rm -rf tmp_downloads
