@@ -15,7 +15,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install aria2
-        run: sudo apt-get install -y aria2
+        run: sudo apt-get install -y aria2 axel
 
       - name: Extract URLs and download files
         run: |
@@ -40,12 +40,13 @@ jobs:
             FILENAME=$(basename "$URL")
             echo "⬇️ Downloading $URL -> $FILENAME"
 
-            aria2c \
-              --split=2 \
-              --max-connection-per-server=2 \
-              --min-split-size=90M \
-              --dir="downloads" \
-              "$URL"
+            #aria2c \
+            #  --split=2 \
+            #  --max-connection-per-server=2 \
+            #  --min-split-size=90M \
+            #  --dir="downloads" \
+            #  "$URL"
+            axel -a -p -n 16 -o downloads "$URL"
           done
 
           if [ "$MODE" = "zip" ]; then
