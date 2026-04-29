@@ -65,7 +65,7 @@ jobs:
               # zip -0 -s 90m "downloads/${BASENAME}.zip" -j "$FILE"
               echo "✅ Parts: $(ls downloads/${BASENAME}* | wc -l)"
             else
-              cp "$FILE" "downloads/$BASENAME"
+              mv "$FILE" "downloads/$BASENAME"
             fi
           done
 
