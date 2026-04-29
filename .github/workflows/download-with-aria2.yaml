@@ -43,7 +43,7 @@ jobs:
             aria2c \
               --split=2 \
               --max-connection-per-server=2 \
-              --min-split-size=90M \
+              --min-split-size=20480M \
               --dir="tmp_downloads" \
               "$URL"
           done
@@ -56,17 +56,17 @@ jobs:
           # Split any file over 90MB using zip native split (unzip compatible) [[[ DISABLED ]]]
            for FILE in tmp_downloads/*; do
              [ -f "$FILE" ] || continue
-          #   SIZE=$(stat -c%s "$FILE")
-          #   LIMIT=$((90 * 1024 * 1024))
+             SIZE=$(stat -c%s "$FILE")
+             LIMIT=$((90 * 1024 * 1024))
              BASENAME=$(basename "$FILE")
-          #   if [ "$SIZE" -gt "$LIMIT" ]; then
-          #     echo "✂️ $BASENAME is $(( SIZE / 1024 / 1024 ))MB — splitting with zip..."
-          #     # zip -s creates: file.zip, file.z01, file.z02, ...
-          #     zip -0 -s 90m "downloads/${BASENAME}.zip" -j "$FILE"
-          #     echo "✅ Parts: $(ls downloads/${BASENAME}* | wc -l)"
-          #   else
-             cp "$FILE" "downloads/$BASENAME"
-          #   fi
+             if [ "$SIZE" -gt "$LIMIT" ]; then
+               echo "✂️ $BASENAME is $(( SIZE / 1024 / 1024 ))MB — splitting with zip..."
+               # zip -s creates: file.zip, file.z01, file.z02, ...
+               zip -0 -s 90m "downloads/${BASENAME}.zip" -j "$FILE"
+               echo "✅ Parts: $(ls downloads/${BASENAME}* | wc -l)"
+             else
+               mv "$FILE" "downloads/$BASENAME"
+             fi
            done
 
           rm -rf tmp_downloads
