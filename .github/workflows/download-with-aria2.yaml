@@ -72,7 +72,7 @@ jobs:
           for FILE in tmp_downloads/*; do
            [ -f "$FILE" ] || continue
            BASENAME=$(basename "$FILE")
-           mv "$FILE" "downloads/$BASENAME"
+           cp "$FILE" "downloads/$BASENAME"
           done
           
           rm -rf tmp_downloads
