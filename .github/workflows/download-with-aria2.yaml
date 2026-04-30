@@ -64,18 +64,18 @@ jobs:
             if [[ "$MODE" == video* ]]; then
               echo "🎬 Using yt-dlp with headers for $DOMAIN"
 
-            FORMAT="b"
-            
-            if [ "$MODE" = "video_quality" ]; then
-              FORMAT="bestvideo[height<=${QUALITY}]+bestaudio/best[height<=${QUALITY}]"
-            fi
-            
-            yt-dlp \
-              --add-header "User-Agent: Mozilla/5.0" \
-              --add-header "Referer: https://$DOMAIN/" \
-              -f "$FORMAT" \
-              -o "tmp_downloads/%(title)s.%(ext)s" \
-              "$URL"
+              FORMAT="b"
+              
+              if [ "$MODE" = "video_quality" ]; then
+                FORMAT="bestvideo[height<=${QUALITY}]+bestaudio/best[height<=${QUALITY}]"
+              fi
+              
+              yt-dlp \
+                --add-header "User-Agent: Mozilla/5.0" \
+                --add-header "Referer: https://$DOMAIN/" \
+                -f "$FORMAT" \
+                -o "tmp_downloads/%(title)s.%(ext)s" \
+                "$URL"
 
             else
               echo "📦 Using aria2"
