@@ -61,10 +61,10 @@ jobs:
             FILENAME=$(basename "$URL")
             echo "⬇️ Processing $URL"
 
-            if [ "$MODE" = "video" ]; then
+            if [[ "$MODE" == video* ]]; then
               echo "🎬 Using yt-dlp with headers for $DOMAIN"
 
-            FORMAT="best"
+            FORMAT="b"
             
             if [ "$MODE" = "video_quality" ]; then
               FORMAT="bestvideo[height<=${QUALITY}]+bestaudio/best[height<=${QUALITY}]"
