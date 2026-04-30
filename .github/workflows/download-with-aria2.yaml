@@ -71,7 +71,7 @@ jobs:
               fi
               
               yt-dlp \
-                --add-header "User-Agent: Mozilla/5.0" \
+                --add-header "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" \
                 --add-header "Referer: https://$DOMAIN/" \
                 -f "$FORMAT" \
                 -o "tmp_downloads/%(title)s.%(ext)s" \
