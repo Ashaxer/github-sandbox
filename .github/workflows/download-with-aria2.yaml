@@ -26,9 +26,17 @@ jobs:
           URL_LINE=""
           DOMAIN=""
 
-          if echo "$MSG" | grep -qP 'download-zip:'; then
-            MODE="zip"
-            URL_LINE=$(echo "$MSG" | grep -oP 'download-zip:\s*\K.*')
+          if echo "$MSG" | grep -qP 'download-video-[0-9]+p-[^:]+:'; then
+            MODE="video_quality"
+            QUALITY=$(echo "$MSG" | grep -oP 'download-video-\K[0-9]+(?=p-)')
+            DOMAIN=$(echo "$MSG" | grep -oP 'download-video-[0-9]+p-\K[^:]+')
+          
+            URL_LINE=$(echo "$MSG" | grep -oP 'download-video-[^:]+:\s*\K.*')
+          
+          elif echo "$MSG" | grep -qP 'download-video-[^:]+:'; then
+            MODE="video"
+            DOMAIN=$(echo "$MSG" | grep -oP 'download-video-\K[^:]+')
+            URL_LINE=$(echo "$MSG" | grep -oP 'download-video-[^:]+:\s*\K.*')
 
           elif echo "$MSG" | grep -qP 'download-video-[^:]+:'; then
             MODE="video"
@@ -56,11 +64,18 @@ jobs:
             if [ "$MODE" = "video" ]; then
               echo "🎬 Using yt-dlp with headers for $DOMAIN"
 
-              yt-dlp \
-                --add-header "User-Agent: Mozilla/5.0" \
-                --add-header "Referer: https://$DOMAIN/" \
-                -o "tmp_downloads/%(title)s.%(ext)s" \
-                "$URL"
+            FORMAT="best"
+            
+            if [ "$MODE" = "video_quality" ]; then
+              FORMAT="bestvideo[height<=${QUALITY}]+bestaudio/best[height<=${QUALITY}]"
+            fi
+            
+            yt-dlp \
+              --add-header "User-Agent: Mozilla/5.0" \
+              --add-header "Referer: https://$DOMAIN/" \
+              -f "$FORMAT" \
+              -o "tmp_downloads/%(title)s.%(ext)s" \
+              "$URL"
 
             else
               echo "📦 Using aria2"
@@ -82,17 +97,24 @@ jobs:
           # Split any file over 90MB using zip native split
           for FILE in tmp_downloads/*; do
             [ -f "$FILE" ] || continue
+          
             SIZE=$(stat -c%s "$FILE")
             LIMIT=$((90 * 1024 * 1024))
             BASENAME=$(basename "$FILE")
-
+          
+            # sanitize name for zip output safety
+            SAFE_NAME=$(echo "$BASENAME" | tr ' ' '_' | tr -cd '[:alnum:]_.-')
+          
             if [ "$SIZE" -gt "$LIMIT" ]; then
               echo "✂️ $BASENAME is $(( SIZE / 1024 / 1024 ))MB — splitting with zip..."
-              zip -0 -s 90m "downloads/${BASENAME}.zip" -j "$FILE"
-              echo "✅ Parts: $(ls downloads/${BASENAME}* | wc -l)"
+          
+              zip -0 -s 90m "downloads/${SAFE_NAME}.zip" -j "$FILE"
+          
+              echo "✅ Parts: $(find downloads -name "${SAFE_NAME}.z*" | wc -l)"
+          
               rm "$FILE"
             else
-              cp "$FILE" "downloads/$BASENAME"
+              cp "$FILE" "downloads/$SAFE_NAME"
             fi
           done
 
@@ -104,7 +126,8 @@ jobs:
           git config user.email "github-actions@github.com"
 
           # Collect all new/untracked files under downloads/
-          mapfile -t ALL_FILES < <(git ls-files --others --modified --exclude-standard downloads/)
+          # mapfile -t ALL_FILES < <(git ls-files --others --modified --exclude-standard downloads/)
+          mapfile -d '' ALL_FILES < <(find downloads -type f -print0)
 
           TOTAL=${#ALL_FILES[@]}
           echo "📦 Total files to push: $TOTAL"
