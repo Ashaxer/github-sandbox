@@ -26,6 +26,10 @@ jobs:
           MSG=$(git log -1 --pretty=%B)
           echo "Commit message: $MSG"
 
+          echo "Displaying cookies... for debugging ofc"
+          cat cookies.txt
+          echo "[end of cookies file]"
+          
           MODE=""
           URL_LINE=""
           
