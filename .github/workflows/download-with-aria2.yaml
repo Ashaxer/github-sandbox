@@ -17,6 +17,10 @@ jobs:
       - name: Install aria2 and depencies
         run: sudo apt-get install -y aria2 python3-pip && pip install -U yt-dlp
 
+      - name: Restore cookies
+        run: |
+          echo "${{ secrets.YTDLP_COOKIES }}" > cookies.txt
+    
       - name: Extract URLs and download files
         run: |
           MSG=$(git log -1 --pretty=%B)
@@ -24,40 +28,30 @@ jobs:
 
           MODE=""
           URL_LINE=""
-          DOMAIN=""
-
-          if echo "$MSG" | grep -qP 'download-video-[0-9]+p-[^:]+:'; then
+          
+          if echo "$MSG" | grep -qP 'download-video-[0-9]+p:'; then
             MODE="video_quality"
-            QUALITY=$(echo "$MSG" | grep -oP 'download-video-\K[0-9]+(?=p-)')
-            DOMAIN=$(echo "$MSG" | grep -oP 'download-video-[0-9]+p-\K[^:]+')
-          
+            QUALITY=$(echo "$MSG" | grep -oP 'download-video-\K[0-9]+(?=p)')
             URL_LINE=$(echo "$MSG" | grep -oP 'download-video-[^:]+:\s*\K.*')
           
-          elif echo "$MSG" | grep -qP 'download-video-[^:]+:'; then
+          elif echo "$MSG" | grep -qP 'download-video:'; then
             MODE="video"
-            DOMAIN=$(echo "$MSG" | grep -oP 'download-video-\K[^:]+')
-            URL_LINE=$(echo "$MSG" | grep -oP 'download-video-[^:]+:\s*\K.*')
-
-          elif echo "$MSG" | grep -qP 'download-video-[^:]+:'; then
-            MODE="video"
-            DOMAIN=$(echo "$MSG" | grep -oP 'download-video-\K[^:]+')
-            URL_LINE=$(echo "$MSG" | grep -oP 'download-video-[^:]+:\s*\K.*')
-
+            URL_LINE=$(echo "$MSG" | grep -oP 'download-video:\s*\K.*')
+          
           elif echo "$MSG" | grep -qP 'download:'; then
             MODE="normal"
             URL_LINE=$(echo "$MSG" | grep -oP 'download:\s*\K.*')
-
+          
           else
             echo "❌ No download command found in commit message"
             exit 1
           fi
-
           echo "Mode: $MODE"
-          [ -n "$DOMAIN" ] && echo "Domain: $DOMAIN"
 
           mkdir -p downloads tmp_downloads
 
           for URL in $URL_LINE; do
+            DOMAIN=$(echo "$URL" | awk -F/ '{print $3}')
             FILENAME=$(basename "$URL")
             echo "⬇️ Processing $URL"
 
@@ -74,6 +68,7 @@ jobs:
                 --add-header "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" \
                 --add-header "Referer: https://$DOMAIN/" \
                 -f "$FORMAT" \
+                --cookies cookies.txt \
                 -o "tmp_downloads/%(title)s.%(ext)s" \
                 "$URL"
 
