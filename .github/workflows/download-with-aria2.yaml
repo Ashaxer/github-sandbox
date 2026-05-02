@@ -107,6 +107,7 @@ jobs:
           
             if [ "$SIZE" -gt "$NINE_GB" ]; then
               echo "⚠️ $BASENAME is $(( SIZE / 1024 / 1024 / 1024 ))GB — extreme split (truncate from end)..."
+              echo "MD5SUM: $(md5sum "$FILE")"
               
               PART_SIZE=$LIMIT
               FILE_SIZE=$SIZE
