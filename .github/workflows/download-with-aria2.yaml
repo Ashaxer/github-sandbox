@@ -93,18 +93,52 @@ jobs:
             zip -j "$ARCHIVE_NAME" tmp_downloads/*
           fi
 
-          # Split any file over 90MB using zip native split
+          # Split any file over 90MB. Files > 9GB use in-place truncation to save disk space.
           for FILE in tmp_downloads/*; do
             [ -f "$FILE" ] || continue
           
             SIZE=$(stat -c%s "$FILE")
-            LIMIT=$((90 * 1024 * 1024))
+            LIMIT=$((90 * 1024 * 1024))       # 90 MB
+            NINE_GB=$((9 * 1024 * 1024 * 1024)) # 9 GB
             BASENAME=$(basename "$FILE")
           
-            # sanitize name for zip output safety
+            # sanitize name for safety
             SAFE_NAME=$(echo "$BASENAME" | tr ' ' '_' | tr -cd '[:alnum:]_.-')
           
-            if [ "$SIZE" -gt "$LIMIT" ]; then
+            if [ "$SIZE" -gt "$NINE_GB" ]; then
+              echo "⚠️ $BASENAME is $(( SIZE / 1024 / 1024 / 1024 ))GB — extreme split (truncate from end)..."
+              
+              PART_SIZE=$LIMIT
+              FILE_SIZE=$SIZE
+              PART_NUM=1
+          
+              while [ "$FILE_SIZE" -gt 0 ]; do
+                if [ "$FILE_SIZE" -gt "$PART_SIZE" ]; then
+                  READ_SIZE=$PART_SIZE
+                  SKIP_BYTES=$((FILE_SIZE - PART_SIZE))
+                else
+                  READ_SIZE=$FILE_SIZE
+                  SKIP_BYTES=0
+                fi
+                
+                PART_NAME=$(printf "downloads/%s.part_%03d.bin" "$SAFE_NAME" "$PART_NUM")
+                echo "   -> Creating $(basename "$PART_NAME") ($((READ_SIZE / 1024 / 1024))MB)..."
+          
+                # Read exact bytes fast using GNU dd
+                dd if="$FILE" of="$PART_NAME" bs=4M skip="$SKIP_BYTES" count="$READ_SIZE" iflag=skip_bytes,count_bytes status=none
+                
+                # Truncate file to free up space
+                truncate -s "$SKIP_BYTES" "$FILE"
+          
+                FILE_SIZE=$SKIP_BYTES
+                PART_NUM=$((PART_NUM + 1))
+              done
+              
+              # Remove the remaining empty source file just in case
+              rm -f "$FILE"
+              echo "✅ Extreme split complete. Parts: $(ls -1 downloads/${SAFE_NAME}.part_*.bin 2>/dev/null | wc -l)"
+          
+            elif [ "$SIZE" -gt "$LIMIT" ]; then
               echo "✂️ $BASENAME is $(( SIZE / 1024 / 1024 ))MB — splitting with zip..."
           
               zip -0 -s 90m "downloads/${SAFE_NAME}.zip" -j "$FILE"
@@ -116,6 +150,7 @@ jobs:
               cp "$FILE" "downloads/$SAFE_NAME"
             fi
           done
+
 
           rm -rf tmp_downloads
       - name: Commit & Push in batches of 5 files
