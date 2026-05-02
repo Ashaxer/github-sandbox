@@ -105,3 +105,4 @@ After committing, you can monitor the workflow:
 - Separate multiple URLs with spaces
 - The workflow skips itself using `[skip ci]` in its own commit message to avoid infinite loops
 - If no valid `download:` or `download-zip:` command is found in the commit message, the workflow will exit without doing anything
+- If your file is bigger than 9GB, instead of zip files, you would get bin files of 90MB, you have to put all files in single directory and use `cat $(ls -r part_*.bin) > yourfile.bin`
