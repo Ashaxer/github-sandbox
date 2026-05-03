@@ -25,10 +25,6 @@ jobs:
         run: |
           MSG=$(git log -1 --pretty=%B)
           echo "Commit message: $MSG"
-
-          echo "Displaying cookies... for debugging ofc"
-          cat cookies.txt
-          echo "[end of cookies file]"
           
           MODE=""
           URL_LINE=""
@@ -78,7 +74,6 @@ jobs:
                 --add-header "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" \
                 --add-header "Referer: https://$DOMAIN/" \
                 -f "$FORMAT" \
-                --cookies cookies.txt \
                 -o "tmp_downloads/%(title)s.%(ext)s" \
                 "$URL"
             elif [ "$MODE" = "normal_parted" ]; then
