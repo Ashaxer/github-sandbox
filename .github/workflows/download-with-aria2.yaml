@@ -48,8 +48,8 @@ jobs:
             
           elif echo "$MSG" | grep -qP 'download-[0-9]-[0-9]:'; then
             MODE="normal_parted"
-            START_BYTE=$(echo "$MSG" | grep -oP 'download-\K\d+')
-            END_BYTE=$(echo "$MSG" | grep -oP 'download-\d+-\K\d+')
+            START_BYTE=$(echo "$MSG" | grep -oP '^download-\K\d+')
+            END_BYTE=$(echo "$MSG" | grep -oP '^download-\d+-\K(?:\d+|END)')
             URL_LINE=$(echo "$MSG" | grep -oP 'download-[^:]+:\s*\K.*')
           
           else
@@ -83,14 +83,20 @@ jobs:
                 "$URL"
             elif [ "$MODE" = "normal_parted" ]; then
               echo "📦 Using aria2 parted"
-
+              
+              if [ "$END_BYTE" = "END" ]; then
+                RANGE="bytes=$START_BYTE-"
+              else
+                RANGE="bytes=$START_BYTE-$END_BYTE"
+              fi
+              
               aria2c \
                 --split=2 \
                 --max-connection-per-server=2 \
                 --header="Range: bytes=$START_BYTE-$END_BYTE" \
                 --min-split-size=90M \
                 --dir="tmp_downloads" \
-                -o "$FILENAME.SPLIT-$START_BYTE-$END_BYTE"
+                -o "$FILENAME.SPLIT-$START_BYTE-$END_BYTE" \
                 "$URL"
             else
               echo "📦 Using aria2"
