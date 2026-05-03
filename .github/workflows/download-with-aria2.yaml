@@ -91,8 +91,8 @@ jobs:
               fi
               
               aria2c \
-                --split=2 \
-                --max-connection-per-server=2 \
+                --split=1 \
+                --max-connection-per-server=1 \
                 --header="Range: bytes=$START_BYTE-$END_BYTE" \
                 --min-split-size=90M \
                 --dir="tmp_downloads" \
