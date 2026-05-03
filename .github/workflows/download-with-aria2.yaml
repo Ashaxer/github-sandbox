@@ -101,9 +101,9 @@ jobs:
                 --header="Range: bytes=$START_BYTE-$END_BYTE" \
                 --min-split-size=90M \
                 --dir="tmp_downloads" \
-                --allow-overwrite=true
-                --auto-file-renaming=false
-                --continue=false
+                --allow-overwrite=true \
+                --auto-file-renaming=false \
+                --continue=false \
                 -o "$FILENAME.SPLIT-$START_BYTE-$END_BYTE" \
                 "$URL"
             else
