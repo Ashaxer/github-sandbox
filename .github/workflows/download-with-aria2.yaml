@@ -46,7 +46,7 @@ jobs:
             MODE="normal"
             URL_LINE=$(echo "$MSG" | grep -oP 'download:\s*\K.*')
             
-          elif echo "$MSG" | grep -qP 'download-[0-9]-[0-9]:'; then
+          elif echo "$MSG" | grep -qP 'download-[0-9]+-(?:[0-9]+|END):'; then
             MODE="normal_parted"
             START_BYTE=$(echo "$MSG" | grep -oP '^download-\K\d+')
             END_BYTE=$(echo "$MSG" | grep -oP '^download-\d+-\K(?:\d+|END)')
