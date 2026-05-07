@@ -17,10 +17,6 @@ jobs:
       - name: Install aria2 and depencies
         run: sudo apt-get install -y aria2 python3-pip && pip install -U yt-dlp
 
-      - name: Restore cookies
-        run: |
-          echo "${{ secrets.YTDLP_COOKIES }}" > cookies.txt
-    
       - name: Extract URLs and download files
         run: |
           MSG=$(git log -1 --pretty=%B)
