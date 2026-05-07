@@ -5,6 +5,7 @@ on:
       - "**"
 jobs:
   save-file:
+    if: contains(github.event.head_commit.message, 'download:') || contains(github.event.head_commit.message, 'download-zip:')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -182,8 +183,7 @@ jobs:
           git config user.email "github-actions@github.com"
 
           # Collect all new/untracked files under downloads/
-          # mapfile -t ALL_FILES < <(git ls-files --others --modified --exclude-standard downloads/)
-          mapfile -d '' ALL_FILES < <(find downloads -type f -print0)
+          mapfile -t ALL_FILES < <(git ls-files --others --modified --exclude-standard downloads/)
 
           TOTAL=${#ALL_FILES[@]}
           echo "📦 Total files to push: $TOTAL"
